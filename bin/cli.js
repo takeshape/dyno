@@ -2,7 +2,7 @@
 var params = require('minimist')(process.argv.slice(2));
 var Dyno = require('../index.js');
 var queue = require('queue-async');
-var es = require('event-stream');
+var split2 = require('split2');
 var stream = require('stream');
 
 function usage() {
@@ -267,7 +267,7 @@ if (params.command === 'scan') scan();
 // ----------------------------------
 if (params.command === 'import') {
   process.stdin
-    .pipe(es.split())
+    .pipe(split2())
     .pipe(Parser())
     .pipe(Aggregator(true))
     .pipe(Importer(true))
@@ -282,7 +282,7 @@ if (params.command === 'import') {
 // ----------------------------------
 if (params.command === 'put') {
   process.stdin
-    .pipe(es.split())
+    .pipe(split2())
     .pipe(Parser())
     .pipe(Aggregator(false))
     .pipe(Importer(false))
