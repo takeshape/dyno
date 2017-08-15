@@ -172,12 +172,9 @@ function Importer(withTable) {
   var q = queue(10);
 
   var importer = stream.Transform({ objectMode: true, highWaterMark: 100 });
-  var queued = 0;
 
   importer._transform = function(data, enc, callback) {
     if (!data) return;
-    if (queued > 100)
-      setImmediate(importer._transform.bind(importer), data, enc, callback);
 
     if (firstline) {
       firstline = false;
@@ -198,15 +195,13 @@ function Importer(withTable) {
         });
       });
 
-      dyno.batchWriteItemRequests(reqs).forEach(function(req) {
-        queued++;
-        q.defer(function(next) {
-          req.send(function(err) {
-            queued--;
-            next(err);
-          });
+      var requests = dyno.batchWriteAll(reqs);
+      q.defer(function(next) {
+        requests.sendAll(function(err) {
+          next(err);
         });
       });
+
       callback();
     }
   };
